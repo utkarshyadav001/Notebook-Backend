@@ -4,8 +4,9 @@ const router = express.Router();
 const { body, validationResult } = require("express-validator")
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const fetchuser = require("../middleware/fetchuser")
 const jwt_SECRET = 'MYNOTEBOOKISBESTUTKARSHYADAV';
+
 
 //  Create a user using:  POST  "/api/auth/createuser". no login required
 router.post('/createuser', [ 
@@ -44,7 +45,7 @@ router.post('/createuser', [
     }
 
     const authToken = jwt.sign(data, jwt_SECRET);
-    console.log(authToken)
+    console.log(authToken);
     
     // .then(user => res.json(user) )
     // .catch(err => {console.log(err) 
@@ -77,7 +78,6 @@ router.post('/login', [
 
     const {email, password} = req.body
 
-    // if(email !== User.e)
     try {
     //  check whether the user with this same email exists already
     let user = await User.findOne({email: req.body.email});
@@ -99,12 +99,27 @@ router.post('/login', [
 
     const authToken = jwt.sign(data, jwt_SECRET);
     
-    res.json({authToken})
+    res.json({authToken});
        
 } catch (error) {
         console.error(error);
         res.status(500).send("Some error occured");
 }
 });
+
+
+//  Get logged in user Details using :  POST  "/api/auth/getuser".  login required
+router.post('/getuser', fetchuser,  async (req, res)=>{
+
+try {
+    userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.send({user});
+} catch (error) {
+        console.error(error);
+        res.status(500).send("Some error occured");
+}
+});
+
 
 module.exports = router;
